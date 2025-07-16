@@ -105,16 +105,6 @@ export const userProgressRelations = relations(userProgress, ({ one }) =>({
     activeCourse: one(courses, { fields: [userProgress.activeCourseId], references: [courses.id] }),
 }));
 
-//For the shop subscription
-export const userSubscription = pgTable("user_subscription", {
-    id: serial("id").primaryKey(),
-    userId: text("user_id").notNull().unique(),
-    stripeCustomerId: text("stripe_customer_id").notNull().unique(),
-    stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
-    stripePriceId: text("stripe_price_id").notNull(),
-    stripeCurrentPeriodEnd: text("stripe_current_period_end").notNull(),
-});
-
 export const vocabulary = pgTable("vocabulary", {
     id: serial("id").primaryKey(),
     unitId: integer("unit_id").references(() => units.id, { onDelete: "cascade" }).notNull(), 

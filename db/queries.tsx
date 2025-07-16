@@ -206,24 +206,6 @@ export const getLessonPercentage = cache(async () => {
 
 //For the shop subscription
 const DAY_IN_MS = 86_400_000;
-export const getUserSubscription = cache(async () => {
-    const { userId } = await auth();
-
-    if (!userId) return null;
-
-    const data = await db.query.userSubscription.findFirst({
-        where: eq(userSubscription.userId, userId)
-    });
-
-    if (!data) return null;
-
-    const stripeCurrentPeriodEndDate = new Date(data.stripeCurrentPeriodEnd);
-    const isActive = data.stripePriceId && stripeCurrentPeriodEndDate.getTime() + DAY_IN_MS > Date.now();
-
-    return {
-        ...data, isActive: !!isActive,
-    };
-});
 
 export const getTopTenUsers = cache (async () => {
     const { userId } = await auth();

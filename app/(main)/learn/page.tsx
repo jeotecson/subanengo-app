@@ -6,7 +6,6 @@ import { title } from "process";
 import { getUnits, getUserProgress, getCourseProgress, getLessonPercentage } from "@/db/queries";
 import { redirect } from "next/navigation";
 import { Unit } from "./unit";
-import { Promo } from "@/components/promo";
 import { Quests } from "@/components/quests";
 
 const LearnPage = async () => {
