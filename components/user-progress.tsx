@@ -28,6 +28,7 @@ export const UserProgress = ({ activeCourse, hearts, points }: Props) => {
             <Link href="/shop">
                 <Button variant="ghost" className="text-rose-500">
                     <Image src="/heart.png" height={22} width={22} alt="Hearts" className="mr-2"/>
+                    {hearts}
                 </Button>
             </Link>
         </div>

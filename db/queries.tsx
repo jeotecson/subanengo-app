@@ -2,7 +2,7 @@ import { cache } from "react";
 import db from "@/db/drizzle";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { userProgress, courses, units, challengeProgress, lessons, userSubscription } from "@/db/schema";
+import { userProgress, courses, units, challengeProgress, lessons } from "@/db/schema";
 
 export const getUserProgress = cache(async () => {
     const { userId } = await auth();
@@ -79,7 +79,6 @@ export const getCourses = cache(async () => {
 export const getCourseById = cache(async (courseId: number) => {
     const data = await db.query.courses.findFirst({
         where: eq(courses.id, courseId),
-        //For the shop subscription
         with: {
             units: {
                 orderBy: (units, { asc }) => [asc(units.order)],
@@ -202,10 +201,6 @@ export const getLessonPercentage = cache(async () => {
 
     return percentage;
 });
-
-
-//For the shop subscription
-const DAY_IN_MS = 86_400_000;
 
 export const getTopTenUsers = cache (async () => {
     const { userId } = await auth();
