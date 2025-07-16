@@ -23,7 +23,7 @@ export const Sidebar = ({ className }: Props) => {
                 <SidebarItem label={"Leaderboard"} iconSrc={"/leaderboard.png"} href={"/leaderboard"} />
                 <SidebarItem label={"Quests"} iconSrc={"/quest.png"} href={"/quests"} />
                 <SidebarItem label={"Modules"} iconSrc={"/module.png"} href={"/modules"} />
-                {/* <SidebarItem label={"Shop"} iconSrc={"/shop.png"} href={"/shop"} /> */}
+                
                 <div className="p-4">
                     <ClerkLoading>
                         <Loader className="h-5 w-5 text-muted-foreground animate-spin"/>
