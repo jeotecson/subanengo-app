@@ -1,12 +1,11 @@
 import { eq } from "drizzle-orm";
 import db from "@/db/drizzle";
 import { stories } from "@/db/schema";
-import { getUserProgress, getUserSubscription } from "@/db/queries";
+import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
-import { Promo } from "@/components/promo";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,13 +20,10 @@ type Props = {
 const UnitStoryPage = async ({ params }: Props) => {
   const unitId = Number(params.unitId);
   const userProgress = await getUserProgress();
-  const userSubscription = await getUserSubscription();
 
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/courses");
   }
-
-  const isPro = !!userSubscription?.isActive;
 
   const storyList = await db.query.stories.findMany({
     where: eq(stories.unitId, unitId),
@@ -40,9 +36,7 @@ const UnitStoryPage = async ({ params }: Props) => {
           activeCourse={userProgress.activeCourse}
           hearts={userProgress.hearts}
           points={userProgress.points}
-          hasActiveSubscriptions={isPro}
         />
-        {!isPro && <Promo />}
       </StickyWrapper>
 
       <div className="flex flex-col flex-1">

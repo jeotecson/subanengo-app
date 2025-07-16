@@ -1,4 +1,4 @@
-import { getUnits, getUserProgress, getUserSubscription } from "@/db/queries";
+import { getUnits, getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,20 +7,16 @@ import { Button } from "@/components/ui/button";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { UserProgress } from "@/components/user-progress";
-import { Promo } from "@/components/promo";
 
 const ExploreUnitsPage = async () => {
-  const [units, userProgress, userSubscription] = await Promise.all([
+  const [units, userProgress] = await Promise.all([
     getUnits(),
     getUserProgress(),
-    getUserSubscription(),
   ]);
 
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/courses");
   }
-
-  const isPro = !!userSubscription?.isActive;
 
   return (
     <div className="flex flex-row-reverse gap-[48px] px-6">
@@ -29,9 +25,7 @@ const ExploreUnitsPage = async () => {
           activeCourse={userProgress.activeCourse}
           hearts={userProgress.hearts}
           points={userProgress.points}
-          hasActiveSubscriptions={isPro}
         />
-        {!isPro && <Promo />}
       </StickyWrapper>
 
       <FeedWrapper>

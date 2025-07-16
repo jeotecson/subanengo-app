@@ -1,29 +1,23 @@
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
-import { getTopTenUsers, getUserProgress, getUserSubscription } from "@/db/queries";
+import { getTopTenUsers, getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Promo } from "@/components/promo";
 import { Quests } from "@/components/quests";
 
 const LeaderboardPage = async () => {
     const userProgressData = getUserProgress();
-    //For the shop subscription
-    const userSubscriptionData = getUserSubscription();
+
     const leaderboardData = getTopTenUsers();
 
     const [
         userProgress,
-        //For the shop subscription
-        userSubscription,
         leaderboard,
     ] = await Promise.all([
         userProgressData,
-        //For the shop subscription
-        userSubscriptionData,
         leaderboardData,
 
     ])
@@ -32,9 +26,6 @@ const LeaderboardPage = async () => {
         redirect("/courses")
     }
 
-    //For the shop subscription. 
-    const isPro = !!userSubscription?.isActive
-
     return (
         <div className="flex flex-row-reverse gap-[48px] px-6">   
             <StickyWrapper>
@@ -42,13 +33,7 @@ const LeaderboardPage = async () => {
                     activeCourse = {userProgress.activeCourse}
                     hearts = {userProgress.hearts}
                     points = {userProgress.points}
-                    //For the shop subscription. Orginal is {false}
-                    hasActiveSubscriptions = {isPro}
                 />
-                {/* For the shop susbcription */}
-                    {!isPro && (
-                    <Promo />
-                )}
 
                 <Quests points={userProgress.points} />          
                         
