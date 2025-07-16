@@ -51,7 +51,7 @@ const QuestsPage = async () => {
           <h1 className="text-center font-bold text-neutral-800 text-2xl my-6">
             Quests
           </h1>
-          <p className="text-muted-foreground text-center text-lg mb-6">
+          <p className="text-muted-foreground text-tcenter text-lg mb-6">
             Complete quests by earning points.
           </p>
           <ul className="w-full">
