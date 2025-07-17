@@ -51,8 +51,8 @@ const LeaderboardPage = async () => {
                     <Separator className="mb-4 h-0.5 rounded-full"/>
                     {leaderboard.map((userProgress, index) => (
                         <div key={userProgress.userId} className="flex items-center w-full p-2 px-4 rounded-xl hover:bg-gray-200/50">
-                            <p className = "font-bold text-lime-700 mr-4">{index + 1}</p>
-                            <Avatar className="border bg-green-500 h-12 w-12 ml-3 mr-6">
+                            <p className = "font-bold text-yellow-700 mr-4">{index + 1}</p>
+                            <Avatar className="border bg-yellow-500 h-12 w-12 ml-3 mr-6">
                                 <AvatarImage className="object-cover" src={userProgress.userImageSrc} />
                             </Avatar>
                             <p className="font-bold text-neutral-800 flex-1">
