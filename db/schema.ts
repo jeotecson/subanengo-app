@@ -50,7 +50,7 @@ export const challenges = pgTable("challenges", {
     lessonId: integer("lesson_id").references(() => lessons.id, { onDelete: "cascade"}).notNull(),
     type: challengesEnum("type").notNull(),
     question: text("question").notNull(),
-    order: integer("order").notNull(),
+    order: integer("order"),
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -69,6 +69,7 @@ export const challengeOptions = pgTable("challenge_options", {
     correct: boolean("correct").notNull(),
     imageSrc: text("image_src"),
     audioSrc: text("audio_src"),
+    order: integer("order").notNull(),
 });
 
 export const challengeOptionsRelations = relations(challengeOptions, ({ one }) => ({

@@ -1,4 +1,4 @@
-import { SimpleForm, Create, TextInput, ReferenceInput, required, BooleanInput } from "react-admin";
+import { SimpleForm, Create, TextInput, ReferenceInput, required, BooleanInput, NumberInput } from "react-admin";
 
 export const ChallengeOptionCreate = () => {
   return (
@@ -24,6 +24,11 @@ export const ChallengeOptionCreate = () => {
         <TextInput
           source="audioSrc"
           label="Audio URL"
+        />
+        <NumberInput
+          source="order"
+          label="Order"
+          validate={[required()]}
         />
       </SimpleForm>
     </Create>
