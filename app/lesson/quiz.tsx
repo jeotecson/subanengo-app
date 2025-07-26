@@ -11,7 +11,7 @@ import { reduceHearts } from "@/actions/user-progress";
 import { useHeartsModal } from "@/store/use-hearts-modal";
 import { challengeOptions, challenges } from "@/db/schema";
 import { usePracticeModal } from "@/store/use-practice-modal";
-import { upsertChallengeProgress } from "@/actions/challenge-progress";
+import { upsertChallengeProgress, upsertChallengeScramble } from "@/actions/challenge-progress";
 
 import { Header } from "./header";
 import { Footer } from "./footer";
