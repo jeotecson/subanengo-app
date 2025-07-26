@@ -98,6 +98,7 @@ const main = async () => {
         await db.insert(schema.challengeOptions).values([
             {
                 challengeId: 1,
+                order: 1,
                 imageSrc: "/man.png",
                 correct: true,
                 text: "Giseg",
@@ -105,6 +106,7 @@ const main = async () => {
             },
             {
                 challengeId: 1,
+                order: 2,
                 imageSrc: "/woman.png",
                 correct: false,
                 text: "Libun",
@@ -112,6 +114,7 @@ const main = async () => {
             },
             {
                 challengeId: 1,
+                order: 3,
                 imageSrc: "/dog.png",
                 correct: false,
                 text: "Gayam",
@@ -119,6 +122,7 @@ const main = async () => {
             },
             {
                 challengeId: 1,
+                order: 4,
                 imageSrc: "/cat.png",
                 correct: false,
                 text: "Baru",
@@ -129,24 +133,28 @@ const main = async () => {
         await db.insert(schema.challengeOptions).values([
             {
                 challengeId: 2,
+                order: 1,
                 correct: true,
                 text: "Giseg",
                 audioSrc: "/audio_man.m4a",
             },
             {
                 challengeId: 2,
+                order: 2,
                 correct: false,
                 text: "Libun",
                 audioSrc: "/audio_woman.m4a",
             },
             {
                 challengeId: 2,
+                order: 3,
                 correct: false,
                 text: "Gayam",
                 audioSrc: "/audio_dog.m4a",
             },
             {
                 challengeId: 2,
+                order: 4,
                 correct: false,
                 text: "Baru",
                 audioSrc: "/audio_cat.m4a",
@@ -156,6 +164,7 @@ const main = async () => {
         await db.insert(schema.challengeOptions).values([
             {
                 challengeId: 3,
+                order: 1,
                 imageSrc: "/man.png",
                 correct: false,
                 text: "Giseg",
@@ -163,6 +172,7 @@ const main = async () => {
             },
             {
                 challengeId: 3,
+                order: 2,
                 imageSrc: "/woman.png",
                 correct: true,
                 text: "Libun",
@@ -170,6 +180,7 @@ const main = async () => {
             },
             {
                 challengeId: 3,
+                order: 3,
                 imageSrc: "/dog.png",
                 correct: false,
                 text: "Gayam",
@@ -177,6 +188,7 @@ const main = async () => {
             },
             {
                 challengeId: 3,
+                order: 4,
                 imageSrc: "/cat.png",
                 correct: false,
                 text: "Baru",
@@ -207,7 +219,30 @@ const main = async () => {
                 question: 'Which one of these is "the woman"?',
             },
         ]);
+        
+        await db.insert(schema.challenges).values({
+        lessonId: 1, 
+        type: "SCRAMBLED",
+        order: 5,
+        question: "Translate 'Dog'",
+        });
 
+        const last = await db.query.challenges.findFirst({
+        orderBy: (c, { desc }) => [desc(c.id)],
+        });
+
+        const word = "Gayam";
+        const letters = word.split("");
+
+        await db.insert(schema.challengeOptions).values(
+        letters.map((letter, i) => ({
+            challengeId: last!.id,
+            text: letter,
+            correct: true,
+            order: i + 1,      
+            slotOrder: null,     
+        }))
+        );
 
         console.log("Seeding finished");
     } catch (error) {
