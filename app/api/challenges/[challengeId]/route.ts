@@ -31,6 +31,7 @@ export const PUT = async (
   const body = await req.json();
   const data = await db.update(challenges).set({
     ...body,
+    scramble_letters: body.scramble_letters ?? null,
   }).where(eq(challenges.id, params.challengeId)).returning();
 
   return NextResponse.json(data[0]);

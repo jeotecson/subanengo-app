@@ -52,6 +52,7 @@ export const challenges = pgTable("challenges", {
     question: text("question").notNull(),
     order: integer("order"),
     correct_answer: text("correct_answer"),
+    scramble_letters: text("scramble_letters"),
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({

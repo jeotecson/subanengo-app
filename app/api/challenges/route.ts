@@ -23,6 +23,7 @@ export const POST = async (req: Request) => {
 
   const data = await db.insert(challenges).values({
     ...body,
+    scramble_letters: body.scramble_letters ?? null,
   }).returning();
 
   return NextResponse.json(data[0]);

@@ -221,37 +221,41 @@ export const Quiz = ({
               {title}
             </h1>
             <div>
-              {challenge.type === "SCRAMBLED" && (
-              <SentenceScramble
-                options={challenge.challengeOptions}
-                onSubmit={(userOrder) => {
-                  startTransition(() => {
-                    upsertChallengeScramble(challenge.id, userOrder).then((res) => {
-                      if (res?.error === "wrong") {
-                        setStatus("wrong");
-                        incorrectControls.play();
-                      } else {
-                        setStatus("correct");
-                        correctControls.play();
-                        setPercentage(p => p + 100 / challenges.length);
-                        setTimeout(onNext, 1000);
-                      }
-                    });
-                  });
-                }}
-              />
-            )}
-              {challenge.type === "ASSIST" && (
-                <QuestionBubble question={challenge.question} />
-              )}
-              <Challenge
-                options={options}
-                onSelect={onSelect}
-                status={status}
-                selectedOption={selectedOption}
-                disabled={pending}
-                type={challenge.type}
-              />
+      {challenge.type === "SCRAMBLED" ? (
+        <SentenceScramble
+          options={challenge.challengeOptions}
+          onSubmit={(userOrder) => {
+            startTransition(() => {
+              upsertChallengeScramble(challenge.id, userOrder).then((res) => {
+                if (res?.error === "wrong") {
+                  setStatus("wrong");
+                  incorrectControls.play();
+                } else {
+                  setStatus("correct");
+                  correctControls.play();
+                  setPercentage((p) => p + 100 / challenges.length);
+                  setTimeout(onNext, 1000);
+                }
+              });
+            });
+          }}
+        />
+      ) : (
+        <>
+    {challenge.type === "ASSIST" && (
+      <QuestionBubble question={challenge.question} />
+    )}
+    <Challenge
+      options={options}
+      onSelect={onSelect}
+      status={status}
+      selectedOption={selectedOption}
+      disabled={pending}
+      type={challenge.type}
+    />
+  </>
+)}
+
             </div>
           </div>
         </div>

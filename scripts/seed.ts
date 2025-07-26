@@ -219,30 +219,15 @@ const main = async () => {
                 question: 'Which one of these is "the woman"?',
             },
         ]);
-        
         await db.insert(schema.challenges).values({
-        lessonId: 1, 
-        type: "SCRAMBLED",
-        order: 5,
-        question: "Translate 'Dog'",
-        });
+            lessonId: 1,
+            type: "SCRAMBLED", 
+            order: 5,
+            question: "Arrange the letters to form the Subanen word for 'Dog'",
+            scramble_letters: "G,y,a,m,x,b",
+            correct_answer: "Gayam",
+            });
 
-        const last = await db.query.challenges.findFirst({
-        orderBy: (c, { desc }) => [desc(c.id)],
-        });
-
-        const word = "Gayam";
-        const letters = word.split("");
-
-        await db.insert(schema.challengeOptions).values(
-        letters.map((letter, i) => ({
-            challengeId: last!.id,
-            text: letter,
-            correct: true,
-            order: i + 1,      
-            slotOrder: null,     
-        }))
-        );
 
         console.log("Seeding finished");
     } catch (error) {
