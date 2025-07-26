@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
-import { challengeProgress, challenges, userProgress } from "@/db/schema";
+import { challengeOptions, challengeProgress, challenges, userProgress } from "@/db/schema";
 
 
 export const upsertChallengeProgress = async (challengeId: number) => {
@@ -78,3 +78,31 @@ export const upsertChallengeProgress = async (challengeId: number) => {
         revalidatePath("/leaderboard");
         revalidatePath(`/lesson/${lessonId}`);
 };
+
+    export const upsertChallengeScramble = async (
+    challengeId: number,
+    userOrder: number[]
+    ) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+    const currentUserProgress = await getUserProgress();
+    if (!currentUserProgress) throw new Error("User progress not found");
+    const challenge = await db.query.challenges.findFirst({ where: eq(challenges.id, challengeId) });
+    if (!challenge) throw new Error("Challenge not found");
+    const correctOptions = await db.query.challengeOptions.findMany({
+        where: eq(challengeOptions.challengeId, challengeId),
+        orderBy: (opt, { asc }) => [asc(opt.order)],
+    });
+    const correctOrder = correctOptions.map(o => o.order);
+    const isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+    if (!isCorrect) return { error: "wrong" };
+    // on correct, mark progress and add points
+    await db.insert(challengeProgress).values({ challengeId, userId, completed: true });
+    await db.update(userProgress).set({ points: currentUserProgress.points + 10 })
+        .where(eq(userProgress.userId, userId));
+    revalidatePath("/learn");
+    revalidatePath(`/lesson/${challenge.lessonId}`);
+    revalidatePath("/quests");
+    revalidatePath("/leaderboard");
+    return { success: true };
+    };
