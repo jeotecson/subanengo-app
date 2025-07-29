@@ -1,4 +1,13 @@
-import { SimpleForm, Create, TextInput, ReferenceInput, NumberInput, required, SelectInput, FormDataConsumer, ArrayInput, SimpleFormIterator } from "react-admin";
+import {
+  SimpleForm,
+  Create,
+  TextInput,
+  ReferenceInput,
+  NumberInput,
+  required,
+  SelectInput,
+  FormDataConsumer
+} from "react-admin";
 
 export const ChallengeCreate = () => {
   return (
@@ -12,53 +21,27 @@ export const ChallengeCreate = () => {
         <SelectInput
           source="type"
           choices={[
-            {
-              id: "SELECT",
-              name: "SELECT",
-            },
-            {
-              id: "ASSIST",
-              name: "ASSIST",
-            },
-            {
-              id: "SCRAMBLED",
-              name: "SCRAMBLED",
-            }
-          ]}
-          validate={[required()]} 
-        />
-        <SimpleForm>
-        <TextInput 
-          source="question" 
-          validate={[required()]} 
-          label="Question"
-        />
-
-        <SelectInput
-          source="type"
-          choices={[
             { id: "SELECT", name: "SELECT" },
             { id: "ASSIST", name: "ASSIST" },
-            { id: "SCRAMBLED", name: "SCRAMBLED" },
+            { id: "SCRAMBLE", name: "SCRAMBLE" },
           ]}
           validate={[required()]} 
         />
 
         <FormDataConsumer>
-          {({ formData, ...rest }) =>
-            formData.type === "SCRAMBLED" && (
+          {({ formData }) =>
+            formData.type === "SCRAMBLE" && (
               <>
-                <TextInput 
-                  source="correct_answer" 
-                  label="Correct Word"
-                  validate={[required()]}
-                  fullWidth
+                <TextInput
+                  source="scramble_letters"
+                  label="Letters (comma‑separated)"
+                  helperText="e.g. G,y,a,m,x,b"
                 />
-                <ArrayInput source="letters" label="Scrambled Letters">
-                  <SimpleFormIterator>
-                    <TextInput source="letter" label="Letter" validate={[required()]} />
-                  </SimpleFormIterator>
-                </ArrayInput>
+                <TextInput
+                  source="correct_answer"
+                  label="Correct answer"
+                  helperText="e.g. Gayam"
+                />
               </>
             )
           }
@@ -66,17 +49,6 @@ export const ChallengeCreate = () => {
 
         <ReferenceInput source="lessonId" reference="lessons" />
         <NumberInput source="order" validate={[required()]} label="Order" />
-      </SimpleForm>
-
-        <ReferenceInput
-          source="lessonId"
-          reference="lessons"
-        />
-        <NumberInput
-          source="order"
-          validate={[required()]}
-          label="Order"
-        />
       </SimpleForm>
     </Create>
   );

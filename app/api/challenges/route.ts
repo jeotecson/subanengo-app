@@ -19,12 +19,18 @@ export const POST = async (req: Request) => {
     return new NextResponse("Unauthorized", { status: 401 });
  };
 
-  const body = await req.json();
+const body = await req.json();
+const { question, type, lessonId, order, correct_answer, scramble_letters } = body;
 
-  const data = await db.insert(challenges).values({
-    ...body,
-    scramble_letters: body.scramble_letters ?? null,
-  }).returning();
+const data = await db.insert(challenges).values({
+  question,
+  type,
+  lessonId,
+  order,
+  correct_answer: correct_answer ?? null,
+  scramble_letters: scramble_letters ?? null,
+}).returning();
+
 
   return NextResponse.json(data[0]);
 };
