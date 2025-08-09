@@ -28,6 +28,7 @@ export const Header = ({
                     alt="Heart"
                     className="mr-2"
                 />
+                {hearts} 
             </div>
         </header>
     )
