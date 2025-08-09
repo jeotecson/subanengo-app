@@ -7,15 +7,12 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 import { getUserProgress } from "@/db/queries";
 import { Progress } from "@/components/ui/progress";
 import { quests } from "@/constants";
+import { RefillHeartsButton } from "@/components/refill-hearts-button";
 
 const QuestsPage = async () => {
   const userProgressData = getUserProgress();
 
-  const [
-    userProgress,
-  ] = await Promise.all([
-    userProgressData,
-  ]);
+  const [userProgress] = await Promise.all([userProgressData]);
 
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/courses");
@@ -29,8 +26,8 @@ const QuestsPage = async () => {
           hearts={userProgress.hearts}
           points={userProgress.points}
         />
-
       </StickyWrapper>
+
       <FeedWrapper>
         <div className="w-full flex flex-col items-center">
           <Image
@@ -45,6 +42,7 @@ const QuestsPage = async () => {
           <p className="text-muted-foreground text-tcenter text-lg mb-6">
             Complete quests by earning points.
           </p>
+
           <ul className="w-full">
             {quests.map((quest) => {
               const progress = (userProgress.points / quest.value) * 100;
@@ -67,13 +65,26 @@ const QuestsPage = async () => {
                     <Progress value={progress} className="h-3" />
                   </div>
                 </div>
-              )
+              );
             })}
+
+            <div className="flex items-center w-full p-4 gap-x-4 border-t-2">
+              <Image src="/heart.png" alt="Heart" height={60} width={60} />
+              <div className="flex-1">
+                <p className="text-neutral-700 text-base lg:text-xl font-bold">
+                  Refill hearts
+                </p>
+              </div>
+              <RefillHeartsButton
+                hearts={userProgress.hearts}
+                points={userProgress.points}
+              />
+            </div>
           </ul>
         </div>
       </FeedWrapper>
     </div>
   );
 };
- 
+
 export default QuestsPage;

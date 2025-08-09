@@ -35,7 +35,8 @@ const LeaderboardPage = async () => {
                     points = {userProgress.points}
                 />
 
-                <Quests points={userProgress.points} />          
+                <Quests points={userProgress.points} hearts={userProgress.hearts} />
+      
                         
             </StickyWrapper>  
 

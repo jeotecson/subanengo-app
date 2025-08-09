@@ -7,6 +7,42 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { POINTS_TO_REFILL } from "@/constants"; 
+
+export const refillHearts = async () => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const currentUserProgress = await getUserProgress();
+
+  if (!currentUserProgress) {
+    throw new Error("User progress not found");
+  }
+
+  // If user already has full hearts
+  if (currentUserProgress.hearts >= 5) {
+    return { error: "full" };
+  }
+
+  if (currentUserProgress.points < POINTS_TO_REFILL) {
+    return { error: "points" };
+  }
+
+  await db.update(userProgress).set({
+    hearts: 5,
+    points: currentUserProgress.points - POINTS_TO_REFILL,
+  }).where(eq(userProgress.userId, userId));
+
+  // revalidate the main pages where userProgress is shown
+  revalidatePath("/learn");
+  revalidatePath("/quests");
+  revalidatePath("/leaderboard");
+
+  return { success: true };
+};
 
 
 export const upsertUserProgress = async (courseId: number) => {

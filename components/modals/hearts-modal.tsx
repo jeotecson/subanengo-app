@@ -24,7 +24,7 @@ export const HeartsModal = () => {
 
   const onClick = () => {
     close();
-    router.push("/store");
+    router.push("/quests");
   };
 
   if (!isClient) {
@@ -47,7 +47,7 @@ export const HeartsModal = () => {
             No hearts left!
           </DialogTitle>
           <DialogDescription className="text-center text-base">
-            You can purchase more hearts in the store or go back to the previous lesson for a refill
+            You can get more hearts on the Quests page or you can go back to the previous lesson for a refill.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mb-4">
