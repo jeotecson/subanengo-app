@@ -13,15 +13,16 @@ import { challengeOptions, challenges } from "@/db/schema";
 import { usePracticeModal } from "@/store/use-practice-modal";
 import { upsertChallengeProgress, upsertChallengeScramble } from "@/actions/challenge-progress";
 
+import OfflineSyncClient, { enqueueAction } from "@/components/OfflineSyncClient";
+
 import { Header } from "./header";
 import { Footer } from "./footer";
 import { Challenge } from "./challenge";
 import { ResultCard } from "./result-card";
 import { QuestionBubble } from "./question-bubble";
-
 import { SentenceScramble } from "@/components/sentence-scramble";
 
-type Props ={
+type Props = {
   initialPercentage: number;
   initialHearts: number;
   initialLessonId: number;
@@ -47,27 +48,19 @@ export const Quiz = ({
   });
 
   const { width, height } = useWindowSize();
-
   const router = useRouter();
 
   const [finishAudio] = useAudio({ src: "/finish.mp3", autoPlay: true });
-  const [
-    correctAudio,
-    _c,
-    correctControls,
-  ] = useAudio({ src: "/correct.wav" });
-  const [
-    incorrectAudio,
-    _i,
-    incorrectControls,
-  ] = useAudio({ src: "/incorrect.wav" });
+  const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
+  const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
+
   const [pending, startTransition] = useTransition();
 
   const [lessonId] = useState(initialLessonId);
   const [hearts, setHearts] = useState(initialHearts);
-  const [percentage, setPercentage] = useState(() => {
-    return initialPercentage === 100 ? 0 : initialPercentage;
-  });
+  const [percentage, setPercentage] = useState(() =>
+    initialPercentage === 100 ? 0 : initialPercentage
+  );
   const [challenges] = useState(initialLessonChallenges);
   const [activeIndex, setActiveIndex] = useState(() => {
     const uncompletedIndex = challenges.findIndex((challenge) => !challenge.completed);
@@ -86,7 +79,6 @@ export const Quiz = ({
 
   const onSelect = (id: number) => {
     if (status !== "none") return;
-
     setSelectedOption(id);
   };
 
@@ -107,32 +99,38 @@ export const Quiz = ({
     }
 
     const correctOption = options.find((option) => option.correct);
+    if (!correctOption) return;
 
-    if (!correctOption) {
-      return;
-    }
-
+    // ✅ Correct answer handling (with offline support)
     if (correctOption.id === selectedOption) {
+      if (!navigator.onLine) {
+        // Offline mode — queue the progress
+        enqueueAction({
+          type: "challengeProgress",
+          payload: { challengeId: challenge.id },
+        });
+
+        toast("You're offline — progress saved and will sync later.");
+        correctControls.play();
+        setStatus("correct");
+        setPercentage((p) => p + 100 / challenges.length);
+        setTimeout(onNext, 1000);
+        return;
+      }
+
+      // Online mode — normal flow
       startTransition(() => {
         upsertChallengeProgress(challenge.id)
-          .then((response) => {
-            if (response?.error === "hearts") {
-              openHeartsModal();
-              return;
-            }
-
+          .then(() => {
             correctControls.play();
             setStatus("correct");
-            setPercentage((prev) => prev + 100 / challenges.length);
-
-            // This is a practice
-            if (initialPercentage === 100) {
-              setHearts((prev) => Math.min(prev + 1, 5));
-            }
+            setPercentage((p) => p + 100 / challenges.length);
+            setTimeout(onNext, 1000);
           })
-          .catch(() => toast.error("Something went wrong. Please try again."))
+          .catch(() => toast.error("Something went wrong. Please try again."));
       });
     } else {
+      // ❌ Wrong answer handling
       startTransition(() => {
         reduceHearts(challenge.id)
           .then((response) => {
@@ -148,7 +146,7 @@ export const Quiz = ({
               setHearts((prev) => Math.max(prev - 1, 0));
             }
           })
-          .catch(() => toast.error("Something went wrong. Please try again."))
+          .catch(() => toast.error("Something went wrong. Please try again."));
       });
     }
   };
@@ -156,6 +154,7 @@ export const Quiz = ({
   if (!challenge) {
     return (
       <>
+        <OfflineSyncClient />
         {finishAudio}
         <Confetti
           width={width}
@@ -183,14 +182,8 @@ export const Quiz = ({
             Great job! <br /> You&apos;ve completed the lesson.
           </h1>
           <div className="flex items-center gap-x-4 w-full">
-            <ResultCard
-              variant="points"
-              value={challenges.length * 10}
-            />
-            <ResultCard
-              variant="hearts"
-              value={hearts}
-            />
+            <ResultCard variant="points" value={challenges.length * 10} />
+            <ResultCard variant="hearts" value={hearts} />
           </div>
         </div>
         <Footer
@@ -202,64 +195,81 @@ export const Quiz = ({
     );
   }
 
-  const title = challenge.type === "ASSIST" 
-    ? "Select the correct meaning"
-    : challenge.question;
+  const title =
+    challenge.type === "ASSIST"
+      ? "Select the correct meaning"
+      : challenge.question;
 
   return (
     <>
+      <OfflineSyncClient />
       {incorrectAudio}
       {correctAudio}
-      <Header
-        hearts={hearts}
-        percentage={percentage}
-      />
+
+      <Header hearts={hearts} percentage={percentage} />
+
       <div className="flex-1">
         <div className="h-full flex items-center justify-center">
           <div className="lg:min-h-[350px] lg:w-[600px] w-full px-6 lg:px-0 flex flex-col gap-y-12">
             <h1 className="text-lg lg:text-3xl text-center lg:text-start font-bold text-neutral-700">
               {title}
             </h1>
-            <div>
-      {challenge.type === "SCRAMBLED" ? (
-        <SentenceScramble
-          options={challenge.challengeOptions}
-          onSubmit={(userOrder) => {
-            startTransition(() => {
-              upsertChallengeScramble(challenge.id, userOrder).then((res) => {
-                if (res?.error === "wrong") {
-                  setStatus("wrong");
-                  incorrectControls.play();
-                } else {
-                  setStatus("correct");
-                  correctControls.play();
-                  setPercentage((p) => p + 100 / challenges.length);
-                  setTimeout(onNext, 1000);
-                }
-              });
-            });
-          }}
-        />
-      ) : (
-        <>
-    {challenge.type === "ASSIST" && (
-      <QuestionBubble question={challenge.question} />
-    )}
-    <Challenge
-      options={options}
-      onSelect={onSelect}
-      status={status}
-      selectedOption={selectedOption}
-      disabled={pending}
-      type={challenge.type}
-    />
-  </>
-)}
 
+            <div>
+              {challenge.type === "SCRAMBLED" ? (
+                <SentenceScramble
+                  options={challenge.challengeOptions}
+                  onSubmit={(userOrder) => {
+                    if (!navigator.onLine) {
+                      enqueueAction({
+                        type: "challengeScramble",
+                        payload: { challengeId: challenge.id, userOrder },
+                      });
+
+                      toast("You're offline — scramble saved and will sync later.");
+                      setStatus("correct");
+                      correctControls.play();
+                      setPercentage((p) => p + 100 / challenges.length);
+                      setTimeout(onNext, 1000);
+                      return;
+                    }
+
+                    startTransition(() => {
+                      upsertChallengeScramble(challenge.id, userOrder).then((res) => {
+                        if (res?.error === "wrong") {
+                          setStatus("wrong");
+                          incorrectControls.play();
+                        } else {
+                          setStatus("correct");
+                          correctControls.play();
+                          setPercentage((p) => p + 100 / challenges.length);
+                          setTimeout(onNext, 1000);
+                        }
+                      });
+                    });
+                  }}
+                />
+              ) : (
+                <>
+                  {challenge.type === "ASSIST" && (
+                    <QuestionBubble question={challenge.question} />
+                  )}
+
+                  <Challenge
+                    options={options}
+                    onSelect={onSelect}
+                    status={status}
+                    selectedOption={selectedOption}
+                    disabled={pending}
+                    type={challenge.type}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
+
       <Footer
         disabled={pending || !selectedOption}
         status={status}

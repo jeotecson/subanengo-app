@@ -219,14 +219,23 @@ const main = async () => {
                 question: 'Which one of these is "the woman"?',
             },
         ]);
+
         await db.insert(schema.challenges).values({
-            lessonId: 1,
-            type: "SCRAMBLED", 
-            order: 5,
-            question: "Arrange the letters to form the Subanen word for 'Dog'",
-            scramble_letters: "G,y,a,m,x,b",
-            correct_answer: "Gayam",
-            });
+        id: 7,
+        lessonId: 1,
+        type: "SCRAMBLED",
+        order: 6,
+        question: "Arrange the words to form: I love Subanen",
+        correct_answer: "I love Subanen",
+        scramble_letters: "love,I,Subanen"
+        });
+
+        await db.insert(schema.challengeOptions).values([
+        { challengeId: 99, order: 1, text: "I", correct: true },
+        { challengeId: 99, order: 2, text: "love", correct: true },
+        { challengeId: 99, order: 3, text: "Subanen", correct: true },
+        ]);
+
 
 
         console.log("Seeding finished");

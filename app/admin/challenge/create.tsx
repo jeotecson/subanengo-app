@@ -23,20 +23,20 @@ export const ChallengeCreate = () => {
           choices={[
             { id: "SELECT", name: "SELECT" },
             { id: "ASSIST", name: "ASSIST" },
-            { id: "SCRAMBLE", name: "SCRAMBLE" },
+            { id: "SCRAMBLED", name: "SCRAMBLED" },
           ]}
           validate={[required()]} 
         />
 
         <FormDataConsumer>
           {({ formData }) =>
-            formData.type === "SCRAMBLE" && (
+            formData.type === "SCRAMBLED" && (
               <>
                 <TextInput
                   source="scramble_letters"
                   label="Letters (comma‑separated)"
                   helperText="e.g. G,y,a,m,x,b"
-                />
+                />  
                 <TextInput
                   source="correct_answer"
                   label="Correct answer"

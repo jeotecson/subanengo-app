@@ -16,7 +16,6 @@ export const UserProgress = ({ activeCourse, hearts, points }: Props) => {
             <Link href="/courses">
                 <Button variant="ghost">
                     <Image src={activeCourse.imageSrc} alt={activeCourse.title} className="rounded-md border" width={32} height={32}/>
-                    {hearts} 
                 </Button>
             </Link>
 

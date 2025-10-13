@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useTransition } from "react";
-import { refillHearts } from "@/actions/user-progress"
+//import { refillHearts } from "@/actions/user-progress"
 import { toast } from "sonner";
 import { POINTS_TO_REFILL } from "@/constants";
 
@@ -23,9 +23,9 @@ export const Items = ({
             return;
     }
 
-    startTransition(() => {
-        refillHearts().catch(() => toast.error("Something went wrong"))
-    });
+    // startTransition(() => {
+    //     refillHearts().catch(() => toast.error("Something went wrong"))
+    // });
     };
 
     return (
