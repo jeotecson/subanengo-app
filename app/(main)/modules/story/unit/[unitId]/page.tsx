@@ -11,13 +11,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AudioButtons } from "@/components/story/story-audio-buttons";
 
-type Props = {
+// ✅ Correct typing for Next.js App Router
+interface UnitStoryPageProps {
   params: {
     unitId: string;
   };
-};
+}
 
-const UnitStoryPage = async ({ params }: Props) => {
+export default async function UnitStoryPage({ params }: UnitStoryPageProps) {
   const unitId = Number(params.unitId);
   const userProgress = await getUserProgress();
 
@@ -58,10 +59,10 @@ const UnitStoryPage = async ({ params }: Props) => {
               storyList.map((stor) => (
                 <li key={stor.id} className="border p-4 rounded-lg shadow-sm space-y-4">
                   <div>
-                  <div className="flex justify-center items-center h-full">
-                    <h1 className="font-semibold text-2xl">{stor.storyTitle}</h1>
-                  </div>
-                  <hr className="my-2 border-muted" />
+                    <div className="flex justify-center items-center h-full">
+                      <h1 className="font-semibold text-2xl">{stor.storyTitle}</h1>
+                    </div>
+                    <hr className="my-2 border-muted" />
                     <p className="font-semibold text-lg">{stor.story}</p>
                     <hr className="my-2 border-muted" />
                     <p className="text-muted-foreground">{stor.translation}</p>
@@ -79,6 +80,4 @@ const UnitStoryPage = async ({ params }: Props) => {
       </div>
     </div>
   );
-};
-
-export default UnitStoryPage;
+}
