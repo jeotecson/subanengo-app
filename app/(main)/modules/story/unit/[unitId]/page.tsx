@@ -11,15 +11,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AudioButtons } from "@/components/story/story-audio-buttons";
 
-// ✅ Correct typing for Next.js App Router
-interface UnitStoryPageProps {
-  params: {
-    unitId: string;
-  };
-}
+export default async function UnitStoryPage({
+  params,
+}: {
+  params: Promise<{ unitId: string }>;
+}) {
+  const { unitId } = await params;
 
-export default async function UnitStoryPage({ params }: UnitStoryPageProps) {
-  const unitId = Number(params.unitId);
+  const numericUnitId = Number(unitId);
   const userProgress = await getUserProgress();
 
   if (!userProgress || !userProgress.activeCourse) {
@@ -27,7 +26,7 @@ export default async function UnitStoryPage({ params }: UnitStoryPageProps) {
   }
 
   const storyList = await db.query.stories.findMany({
-    where: eq(stories.unitId, unitId),
+    where: eq(stories.unitId, numericUnitId),
   });
 
   return (
@@ -54,13 +53,20 @@ export default async function UnitStoryPage({ params }: UnitStoryPageProps) {
         <FeedWrapper>
           <ul className="space-y-6 w-full">
             {storyList.length === 0 ? (
-              <p className="text-muted-foreground text-center">No stories found.</p>
+              <p className="text-muted-foreground text-center">
+                No stories found.
+              </p>
             ) : (
               storyList.map((stor) => (
-                <li key={stor.id} className="border p-4 rounded-lg shadow-sm space-y-4">
+                <li
+                  key={stor.id}
+                  className="border p-4 rounded-lg shadow-sm space-y-4"
+                >
                   <div>
                     <div className="flex justify-center items-center h-full">
-                      <h1 className="font-semibold text-2xl">{stor.storyTitle}</h1>
+                      <h1 className="font-semibold text-2xl">
+                        {stor.storyTitle}
+                      </h1>
                     </div>
                     <hr className="my-2 border-muted" />
                     <p className="font-semibold text-lg">{stor.story}</p>
