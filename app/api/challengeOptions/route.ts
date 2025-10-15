@@ -6,14 +6,13 @@ import { getIsAdmin } from "@/lib/admin";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ challengeOptionId: string }> }
+  { params }: { params: { challengeOptionId: string } }
 ) {
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { challengeOptionId } = await params;
-  const id = Number(challengeOptionId);
+  const id = Number(params.challengeOptionId);
 
   const option = await db.query.challengeOptions.findFirst({
     where: eq(challengeOptions.id, id),
@@ -28,14 +27,13 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ challengeOptionId: string }> }
+  { params }: { params: { challengeOptionId: string } }
 ) {
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { challengeOptionId } = await params;
-  const id = Number(challengeOptionId);
+  const id = Number(params.challengeOptionId);
 
   const deleted = await db
     .delete(challengeOptions)
