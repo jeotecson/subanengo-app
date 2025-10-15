@@ -3,9 +3,8 @@ import db from "@/db/drizzle";
 import { challengeOptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getIsAdmin } from "@/lib/admin";
-
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: { challengeOptionId: string } }
 ) {
   if (!getIsAdmin()) {
@@ -26,7 +25,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  req: Request,
+  _req: Request,
   { params }: { params: { challengeOptionId: string } }
 ) {
   if (!getIsAdmin()) {
