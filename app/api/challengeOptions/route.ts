@@ -3,15 +3,19 @@ import db from "@/db/drizzle";
 import { challengeOptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getIsAdmin } from "@/lib/admin";
-export async function GET(
-  _req: Request,
-  { params }: { params: { challengeOptionId: string } }
-) {
-  if (!getIsAdmin()) {
+
+export async function GET(_req: Request, _ctx: any) {
+  // ensure caller is admin
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const id = Number(params.challengeOptionId);
+  const challengeOptionId = String(_ctx?.params?.challengeOptionId ?? "");
+  const id = Number(challengeOptionId);
+
+  if (Number.isNaN(id)) {
+    return new NextResponse("Bad Request", { status: 400 });
+  }
 
   const option = await db.query.challengeOptions.findFirst({
     where: eq(challengeOptions.id, id),
@@ -24,15 +28,17 @@ export async function GET(
   return NextResponse.json(option);
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { challengeOptionId: string } }
-) {
-  if (!getIsAdmin()) {
+export async function DELETE(_req: Request, _ctx: any) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const id = Number(params.challengeOptionId);
+  const challengeOptionId = String(_ctx?.params?.challengeOptionId ?? "");
+  const id = Number(challengeOptionId);
+
+  if (Number.isNaN(id)) {
+    return new NextResponse("Bad Request", { status: 400 });
+  }
 
   const deleted = await db
     .delete(challengeOptions)
