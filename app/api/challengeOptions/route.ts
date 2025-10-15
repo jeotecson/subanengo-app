@@ -1,29 +1,50 @@
 import { NextResponse } from "next/server";
-
 import db from "@/db/drizzle";
 import { challengeOptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { getIsAdmin } from "@/lib/admin";
 
-export const GET = async () => {
- if (!getIsAdmin()) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ challengeOptionId: string }> }
+) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
-  const data = await db.query.challengeOptions.findMany();
+  const { challengeOptionId } = await params;
+  const id = Number(challengeOptionId);
 
-  return NextResponse.json(data);
-};
+  const option = await db.query.challengeOptions.findFirst({
+    where: eq(challengeOptions.id, id),
+  });
 
-export const POST = async (req: Request) => {
- if (!getIsAdmin()) {
+  if (!option) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  return NextResponse.json(option);
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ challengeOptionId: string }> }
+) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
-  const body = await req.json();
+  const { challengeOptionId } = await params;
+  const id = Number(challengeOptionId);
 
-  const data = await db.insert(challengeOptions).values({
-    ...body,
-  }).returning();
+  const deleted = await db
+    .delete(challengeOptions)
+    .where(eq(challengeOptions.id, id))
+    .returning();
 
-  return NextResponse.json(data[0]);
-};
+  if (!deleted.length) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  return NextResponse.json(deleted[0]);
+}
