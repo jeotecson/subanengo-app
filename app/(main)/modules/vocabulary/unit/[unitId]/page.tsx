@@ -11,24 +11,22 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+export default async function UnitVocabularyPage({
+  params,
+}: {
+  params: Promise<{ unitId: string }>;
+}) {
+  const { unitId } = await params;
+  const numericUnitId = Number(unitId);
 
-type Props = {
-  params: {
-    unitId: string;
-  };
-};
-
-const UnitVocabularyPage = async ({ params }: Props) => {
-  const unitId = Number(params.unitId);
   const userProgress = await getUserProgress();
 
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/courses");
   }
 
-
   const vocabularies = await db.query.vocabulary.findMany({
-    where: eq(vocabulary.unitId, unitId),
+    where: eq(vocabulary.unitId, numericUnitId),
   });
 
   return (
@@ -55,7 +53,9 @@ const UnitVocabularyPage = async ({ params }: Props) => {
         <FeedWrapper>
           <ul className="space-y-6 w-full">
             {vocabularies.length === 0 ? (
-              <p className="text-muted-foreground text-center">No vocabulary found.</p>
+              <p className="text-muted-foreground text-center">
+                No vocabulary found.
+              </p>
             ) : (
               vocabularies.map((vocab) => (
                 <li key={vocab.id} className="border p-4 rounded-lg shadow-sm space-y-2">
@@ -77,8 +77,4 @@ const UnitVocabularyPage = async ({ params }: Props) => {
       </div>
     </div>
   );
-  
-  
-};
-
-export default UnitVocabularyPage;
+}
