@@ -1,39 +1,49 @@
-import { NextResponse, type RouteHandler } from "next/server";
 import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
 import { challenges } from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 
-export const GET: RouteHandler = async (req, context) => {
-  const { params } = context as { params: { challengeId: string } };
-
+// ✅ Updated for Next.js 15
+export async function GET(
+  req: Request,
+  { params }: { params: Record<string, string> },
+) {
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const id = Number(params.challengeId);
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
+
   const data = await db.query.challenges.findFirst({
     where: eq(challenges.id, id),
   });
 
   if (!data) {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse("Not Found", { status: 404 });
   }
 
   return NextResponse.json(data);
-};
+}
 
-export const PUT: RouteHandler = async (req, context) => {
-  const { params } = context as { params: { challengeId: string } };
-
+export async function PUT(
+  req: Request,
+  { params }: { params: Record<string, string> },
+) {
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const id = Number(params.challengeId);
-  const body = await req.json();
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
 
+  const body = await req.json();
   const updated = await db
     .update(challenges)
     .set({
@@ -44,20 +54,24 @@ export const PUT: RouteHandler = async (req, context) => {
     .returning();
 
   if (!updated.length) {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse("Not Found", { status: 404 });
   }
 
   return NextResponse.json(updated[0]);
-};
+}
 
-export const DELETE: RouteHandler = async (_req, context) => {
-  const { params } = context as { params: { challengeId: string } };
-
+export async function DELETE(
+  req: Request,
+  { params }: { params: Record<string, string> },
+) {
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const id = Number(params.challengeId);
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
 
   const deleted = await db
     .delete(challenges)
@@ -65,8 +79,8 @@ export const DELETE: RouteHandler = async (_req, context) => {
     .returning();
 
   if (!deleted.length) {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse("Not Found", { status: 404 });
   }
 
   return NextResponse.json(deleted[0]);
-};
+}
