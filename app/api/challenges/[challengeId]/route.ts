@@ -5,48 +5,74 @@ import db from "@/db/drizzle";
 import { challenges } from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 
-export const GET = async (
-  req: Request,
-  { params }: { params: { challengeId: number } },
-) => {
- if (!getIsAdmin()) {
+export async function GET(
+  _req: Request,
+  { params }: { params: { challengeId: string } }
+) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
+
+  const id = Number(params.challengeId);
 
   const data = await db.query.challenges.findFirst({
-    where: eq(challenges.id, params.challengeId),
+    where: eq(challenges.id, id),
   });
 
+  if (!data) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   return NextResponse.json(data);
-};
+}
 
-export const PUT = async (
+// ✅ PUT: Update a challenge by ID
+export async function PUT(
   req: Request,
-  { params }: { params: { challengeId: number } },
-) => {
- if (!getIsAdmin()) {
+  { params }: { params: { challengeId: string } }
+) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
+  const id = Number(params.challengeId);
   const body = await req.json();
-  const data = await db.update(challenges).set({
-    ...body,
-    scramble_letters: body.scramble_letters ?? null,
-  }).where(eq(challenges.id, params.challengeId)).returning();
 
-  return NextResponse.json(data[0]);
-};
+  const updated = await db
+    .update(challenges)
+    .set({
+      ...body,
+      scramble_letters: body.scramble_letters ?? null,
+    })
+    .where(eq(challenges.id, id))
+    .returning();
 
-export const DELETE = async (
-  req: Request,
-  { params }: { params: { challengeId: number } },
-) => {
- if (!getIsAdmin()) {
+  if (!updated.length) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  return NextResponse.json(updated[0]);
+}
+
+// ✅ DELETE: Delete a challenge by ID
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { challengeId: string } }
+) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
-  const data = await db.delete(challenges)
-    .where(eq(challenges.id, params.challengeId)).returning();
+  const id = Number(params.challengeId);
 
-  return NextResponse.json(data[0]);
-};
+  const deleted = await db
+    .delete(challenges)
+    .where(eq(challenges.id, id))
+    .returning();
+
+  if (!deleted.length) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  return NextResponse.json(deleted[0]);
+}
