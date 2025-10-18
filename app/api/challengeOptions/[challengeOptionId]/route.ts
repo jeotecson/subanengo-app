@@ -6,7 +6,7 @@ import { getIsAdmin } from "@/lib/admin";
 
 export async function GET(
   req: Request,
-  context: { params: Record<string, string> }
+  context: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -30,7 +30,7 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  context: { params: Record<string, string> }
+  context: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -57,7 +57,7 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  context: { params: Record<string, string> }
+  context: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
