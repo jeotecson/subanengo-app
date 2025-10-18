@@ -1,51 +1,61 @@
-import { getIsAdmin } from "@/lib/admin";
-import { NextResponse } from "next/server";
-import { courses } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+
 import db from "@/db/drizzle";
+import { courses } from "@/db/schema";
+import { getIsAdmin } from "@/lib/admin";
 
 export const GET = async (
-    req: Request,
-    { params }: { params: { courseId: number } },
-  ) => {
-    if (!getIsAdmin()) {
-        return new NextResponse("Unauthorized", { status: 401 });
-    };
-  
-    const data = await db.query.courses.findFirst({
-      where: eq(courses.id, params.courseId),
-    });
-  
-    return NextResponse.json(data);
-  };
+  req: Request,
+  context: { params: { courseId: string } }
+) => {
+  const { courseId } = context.params;
 
-  export const PUT = async (
-    req: Request,
-    { params }: { params: { courseId: number } },
-  ) => {
-    if (!getIsAdmin()) {
-        return new NextResponse("Unauthorized", { status: 401 });
-    };
-  
-    const body = await req.json();
-    const data = await db.update(courses).set({
-      ...body,
-    }).where(eq(courses.id, params.courseId)).returning();
-  
-    return NextResponse.json(data[0]);
-  };
+  if (!getIsAdmin()) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
 
+  const data = await db.query.courses.findFirst({
+    where: eq(courses.id, parseInt(courseId)),
+  });
 
-  export const DELETE = async (
-    req: Request,
-    { params }: { params: { courseId: number } },
-  ) => {
-    if (!getIsAdmin()) {
-        return new NextResponse("Unauthorized", { status: 401 });
-    };
-  
-    const data = await db.delete(courses)
-      .where(eq(courses.id, params.courseId)).returning();
-  
-    return NextResponse.json(data[0]);
-  };
+  return NextResponse.json(data);
+};
+
+export const PUT = async (
+  req: Request,
+  context: { params: { courseId: string } }
+) => {
+  const { courseId } = context.params;
+
+  if (!getIsAdmin()) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const body = await req.json();
+  const data = await db
+    .update(courses)
+    .set({ ...body })
+    .where(eq(courses.id, parseInt(courseId)))
+    .returning();
+
+  return NextResponse.json(data[0]);
+};
+
+export const DELETE = async (
+  req: Request,
+  context: { params: { courseId: string } }
+) => {
+  const { courseId } = context.params;
+
+  if (!getIsAdmin()) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const data = await db
+    .delete(courses)
+    .where(eq(courses.id, parseInt(courseId)))
+    .returning();
+
+  return NextResponse.json(data[0]);
+};
