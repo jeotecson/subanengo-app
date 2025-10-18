@@ -1,20 +1,18 @@
+import { NextResponse, type RouteHandler } from "next/server";
 import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
 import { challenges } from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { challengeId: string } }
-) {
+export const GET: RouteHandler = async (req, context) => {
+  const { params } = context as { params: { challengeId: string } };
+
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const id = Number(params.challengeId);
-
   const data = await db.query.challenges.findFirst({
     where: eq(challenges.id, id),
   });
@@ -24,13 +22,11 @@ export async function GET(
   }
 
   return NextResponse.json(data);
-}
+};
 
-// ✅ PUT: Update a challenge by ID
-export async function PUT(
-  req: Request,
-  { params }: { params: { challengeId: string } }
-) {
+export const PUT: RouteHandler = async (req, context) => {
+  const { params } = context as { params: { challengeId: string } };
+
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
@@ -52,13 +48,11 @@ export async function PUT(
   }
 
   return NextResponse.json(updated[0]);
-}
+};
 
-// ✅ DELETE: Delete a challenge by ID
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { challengeId: string } }
-) {
+export const DELETE: RouteHandler = async (_req, context) => {
+  const { params } = context as { params: { challengeId: string } };
+
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
@@ -75,4 +69,4 @@ export async function DELETE(
   }
 
   return NextResponse.json(deleted[0]);
-}
+};
