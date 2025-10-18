@@ -1,16 +1,14 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-
 import db from "@/db/drizzle";
 import { challengeOptions } from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 
-// ✅ Correct Next.js 15 signature using Record<string, string>
 export async function GET(
   req: Request,
-  { params }: { params: Record<string, string> },
+  { params }: { params: { challengeOptionId: string } }
 ) {
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -32,9 +30,9 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: Record<string, string> },
+  { params }: { params: { challengeOptionId: string } }
 ) {
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -59,9 +57,9 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Record<string, string> },
+  { params }: { params: { challengeOptionId: string } }
 ) {
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
