@@ -4,17 +4,16 @@ import { challengeOptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getIsAdmin } from "@/lib/admin";
 
-// GET a single challenge option by ID
 export async function GET(
   request: Request,
-  { params }: { params: { challengeOptionId: string } }
+  context: { params: Record<string, string> }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const option = await db.query.challengeOptions.findFirst({
-    where: eq(challengeOptions.id, Number(params.challengeOptionId)),
+    where: eq(challengeOptions.id, Number(context.params.challengeOptionId)),
   });
 
   if (!option) {
@@ -24,20 +23,18 @@ export async function GET(
   return NextResponse.json(option);
 }
 
-// POST is not typical for a dynamic route, but here's an example if you need it
 export async function POST(
   req: Request,
-  { params }: { params: { challengeOptionId: string } }
+  context: { params: Record<string, string> }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const body = await req.json();
-  // You can use params.challengeOptionId here if needed
   const newOption = await db
     .insert(challengeOptions)
-    .values({ ...body, id: Number(params.challengeOptionId) })
+    .values({ ...body, id: Number(context.params.challengeOptionId) })
     .returning();
 
   return NextResponse.json(newOption[0]);
