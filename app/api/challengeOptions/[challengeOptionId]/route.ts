@@ -52,7 +52,7 @@ export async function PUT(
     return new NextResponse("Not Found", { status: 404 });
   }
 
-    return NextResponse.json(updated[0]);
+  return NextResponse.json(updated[0]);
 }
 
 export async function DELETE(
