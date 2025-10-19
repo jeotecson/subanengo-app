@@ -6,13 +6,13 @@ import { getIsAdmin } from "@/lib/admin";
 
 export async function GET(
   req: Request,
-  context: { params: { challengeOptionId: string } }
+  { params }: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const id = Number(context.params.challengeOptionId);
+  const id = Number(params.challengeOptionId);
   if (isNaN(id)) {
     return new NextResponse("Invalid ID", { status: 400 });
   }
@@ -30,13 +30,13 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  context: { params: { challengeOptionId: string } }
+  { params }: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const id = Number(context.params.challengeOptionId);
+  const id = Number(params.challengeOptionId);
   if (isNaN(id)) {
     return new NextResponse("Invalid ID", { status: 400 });
   }
@@ -52,18 +52,18 @@ export async function PUT(
     return new NextResponse("Not Found", { status: 404 });
   }
 
-  return NextResponse.json(updated[0]);
+    return NextResponse.json(updated[0]);
 }
 
 export async function DELETE(
   req: Request,
-  context: { params: { challengeOptionId: string } }
+  { params }: { params: { challengeOptionId: string } }
 ) {
   if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const id = Number(context.params.challengeOptionId);
+  const id = Number(params.challengeOptionId);
   if (isNaN(id)) {
     return new NextResponse("Invalid ID", { status: 400 });
   }
