@@ -7,7 +7,7 @@ type ExitModalState = {
 };
 
 export const useExitModal = create<ExitModalState>((set) => ({
-    isOpen: false, //TODO: Change back to true
+    isOpen: false, 
     open: () => set({ isOpen: true }),
     close: () => set({ isOpen: false }),
 }));    

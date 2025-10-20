@@ -1,30 +1,24 @@
-import { NextResponse } from "next/server";
-
+import { NextRequest, NextResponse } from "next/server";
+import { getIsAdmin } from "@/lib/admin";
 import db from "@/db/drizzle";
 import { stories } from "@/db/schema";
-import { getIsAdmin } from "@/lib/admin";
 
-export const GET = async () => {
- if (!getIsAdmin()) {
+export async function GET(req: NextRequest) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
- const data = await db.query.stories.findMany();
-
-
+  const data = await db.query.stories.findMany();
   return NextResponse.json(data);
-};
+}
 
-export const POST = async (req: Request) => {
- if (!getIsAdmin()) {
+export async function POST(req: NextRequest) {
+  if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
- };
+  }
 
   const body = await req.json();
+  const created = await db.insert(stories).values(body).returning();
 
-  const data = await db.insert(stories).values({
-    ...body,
-  }).returning();
-
-  return NextResponse.json(data[0]);
-};
+  return NextResponse.json(created[0]);
+}

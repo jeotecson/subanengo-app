@@ -7,9 +7,9 @@ import { getIsAdmin } from "@/lib/admin";
 
 export const GET = async (
   req: Request,
-  context: { params: { unitId: string } }
+  { params }: { params: Promise<{ unitId: string }> }
 ) => {
-  const { unitId } = context.params;
+  const { unitId } = await params;
 
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -24,9 +24,9 @@ export const GET = async (
 
 export const PUT = async (
   req: Request,
-  context: { params: { unitId: string } }
+  { params }: { params: Promise<{ unitId: string }> }
 ) => {
-  const { unitId } = context.params;
+  const { unitId } = await params;
 
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -44,9 +44,9 @@ export const PUT = async (
 
 export const DELETE = async (
   req: Request,
-  context: { params: { unitId: string } }
+  { params }: { params: Promise<{ unitId: string }> }
 ) => {
-  const { unitId } = context.params;
+  const { unitId } = await params;
 
   if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });

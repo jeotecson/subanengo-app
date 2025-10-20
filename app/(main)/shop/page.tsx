@@ -31,7 +31,10 @@ const ShopPage = async () => {
                     hearts = {userProgress.hearts}
                     points = {userProgress.points}
                 />
-                <Quests points={userProgress.points} />
+                <Quests 
+                    points={userProgress.points} 
+                    hearts={userProgress.hearts}
+                />
                 
             </StickyWrapper>  
 

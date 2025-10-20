@@ -7,55 +7,82 @@ import { getIsAdmin } from "@/lib/admin";
 
 export const GET = async (
   req: Request,
-  context: { params: { storyId: string } }
+  context: { params: Promise<{ storyId: string }> }
 ) => {
-  const { storyId } = context.params;
+  const { storyId } = await context.params;
 
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
+  const id = parseInt(storyId);
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
+
   const data = await db.query.stories.findFirst({
-    where: eq(stories.id, parseInt(storyId)),
+    where: eq(stories.id, id),
   });
+
+  if (!data) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
 
   return NextResponse.json(data);
 };
 
 export const PUT = async (
   req: Request,
-  context: { params: { storyId: string } }
+  context: { params: Promise<{ storyId: string }> }
 ) => {
-  const { storyId } = context.params;
+  const { storyId } = await context.params;
 
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
+  const id = parseInt(storyId);
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
+
   const body = await req.json();
-  const data = await db
+  const updated = await db
     .update(stories)
     .set({ ...body })
-    .where(eq(stories.id, parseInt(storyId)))
+    .where(eq(stories.id, id))
     .returning();
 
-  return NextResponse.json(data[0]);
+  if (!updated.length) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  return NextResponse.json(updated[0]);
 };
 
 export const DELETE = async (
   req: Request,
-  context: { params: { storyId: string } }
+  context: { params: Promise<{ storyId: string }> }
 ) => {
-  const { storyId } = context.params;
+  const { storyId } = await context.params;
 
-  if (!getIsAdmin()) {
+  if (!(await getIsAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const data = await db
+  const id = parseInt(storyId);
+  if (isNaN(id)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
+
+  const deleted = await db
     .delete(stories)
-    .where(eq(stories.id, parseInt(storyId)))
+    .where(eq(stories.id, id))
     .returning();
 
-  return NextResponse.json(data[0]);
+  if (!deleted.length) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  return NextResponse.json(deleted[0]);
 };

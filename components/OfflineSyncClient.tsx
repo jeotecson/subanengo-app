@@ -5,7 +5,7 @@ import { get, set } from "idb-keyval";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const QUEUE_KEY = "subanenggo-offline-queue";
+const QUEUE_KEY = "subanengo-offline-queue";
 
 type OfflineAction =
   | { id?: number; type: "challengeProgress"; payload: { challengeId: number } }

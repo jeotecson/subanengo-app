@@ -7,16 +7,17 @@ import { getIsAdmin } from "@/lib/admin";
 
 export const GET = async (
   req: Request,
-  context: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> },
 ) => {
-  const { lessonId } = context.params;
+  const { lessonId } = await params;
+  const lessonIdNumber = parseInt(lessonId);
 
-  if (!getIsAdmin()) {
+ if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
-  }
+ };
 
   const data = await db.query.lessons.findFirst({
-    where: eq(lessons.id, parseInt(lessonId)),
+    where: eq(lessons.id, lessonIdNumber),
   });
 
   return NextResponse.json(data);
@@ -24,38 +25,36 @@ export const GET = async (
 
 export const PUT = async (
   req: Request,
-  context: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> },
 ) => {
-  const { lessonId } = context.params;
+  const { lessonId } = await params;
+  const lessonIdNumber = parseInt(lessonId);
 
-  if (!getIsAdmin()) {
+ if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
-  }
+ };
 
   const body = await req.json();
-  const data = await db
-    .update(lessons)
-    .set({ ...body })
-    .where(eq(lessons.id, parseInt(lessonId)))
-    .returning();
+  const data = await db.update(lessons).set({
+    ...body,
+  }).where(eq(lessons.id, lessonIdNumber)).returning();
 
   return NextResponse.json(data[0]);
 };
 
 export const DELETE = async (
   req: Request,
-  context: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> },
 ) => {
-  const { lessonId } = context.params;
+  const { lessonId } = await params;
+  const lessonIdNumber = parseInt(lessonId);
 
-  if (!getIsAdmin()) {
+ if (!getIsAdmin()) {
     return new NextResponse("Unauthorized", { status: 401 });
-  }
+ };
 
-  const data = await db
-    .delete(lessons)
-    .where(eq(lessons.id, parseInt(lessonId)))
-    .returning();
+  const data = await db.delete(lessons)
+    .where(eq(lessons.id, lessonIdNumber)).returning();
 
   return NextResponse.json(data[0]);
 };
