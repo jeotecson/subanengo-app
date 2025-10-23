@@ -22,7 +22,6 @@ export const Challenge = ({options, onSelect, status, selectedOption, disabled, 
                     order: o.order ?? index + 1,
                 }))}
                 onSubmit={(userOrder) => {
-                    // Replace this with how you check answers in your app
                     console.log("User order:", userOrder);
                 }}
             />

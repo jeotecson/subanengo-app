@@ -22,7 +22,7 @@ export const refillHearts = async () => {
     throw new Error("User progress not found");
   }
 
-  // If user already has full hearts
+  //If user already has full hearts
   if (currentUserProgress.hearts >= 5) {
     return { error: "full" };
   }
@@ -36,7 +36,7 @@ export const refillHearts = async () => {
     points: currentUserProgress.points - POINTS_TO_REFILL,
   }).where(eq(userProgress.userId, userId));
 
-  // revalidate the main pages where userProgress is shown
+  //Revalidate the main pages where userProgress is shown
   revalidatePath("/learn");
   revalidatePath("/quests");
   revalidatePath("/leaderboard");

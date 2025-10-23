@@ -1,3 +1,4 @@
+// app/(main)/leaderboard/page.tsx
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
@@ -7,23 +8,64 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Quests } from "@/components/quests";
+import { getCachedData, setCachedData } from "@/lib/cache"; 
+
+type LeaderboardEntry = {
+    userId: string;
+    userName: string;
+    userImageSrc: string;
+    points: number;
+};
 
 const LeaderboardPage = async () => {
     const userProgressData = getUserProgress();
+    
+    let leaderboard: LeaderboardEntry[] | null = null;
 
-    const leaderboardData = getTopTenUsers();
+    try {
+        const freshData = await getTopTenUsers();
+        leaderboard = freshData;
+        await setCachedData("leaderboard", freshData);
+    } catch (error) {
+        console.log("Failed to fetch leaderboard, falling back to cache.");
+        const cachedData = await getCachedData("leaderboard");
+        leaderboard = cachedData as LeaderboardEntry[] | null;
+    }
 
     const [
         userProgress,
-        leaderboard,
     ] = await Promise.all([
         userProgressData,
-        leaderboardData,
-
-    ])
+    ]);
 
     if (!userProgress || !userProgress.activeCourse) {
-        redirect("/courses")
+        redirect("/courses");
+    }
+
+    if (!leaderboard) {
+        return (
+            <div className="flex flex-row-reverse gap-[48px] px-6">   
+                <StickyWrapper>
+                    <UserProgress 
+                        activeCourse = {userProgress.activeCourse}
+                        hearts = {userProgress.hearts}
+                        points = {userProgress.points}
+                    />
+                    <Quests points={userProgress.points} hearts={userProgress.hearts} />
+                </StickyWrapper>  
+                <FeedWrapper>
+                    <div className="w-full flex flex-col items-center">
+                        <Image src="/leaderboard.png" alt="Leaderboard" height={90} width={90}/>
+                        <h1 className="text-center font-bold text-neutral-800 text-2xl my-6">
+                            Leaderboard
+                        </h1>
+                        <p className="text-muted-foreground text-center text-lg mb-6">
+                            Leaderboard is unavailable offline. Please connect to the internet to see the latest rankings.
+                        </p>
+                    </div>
+                </FeedWrapper>       
+            </div>
+        );
     }
 
     return (

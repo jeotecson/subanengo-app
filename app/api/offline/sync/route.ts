@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import db from "@/db/drizzle";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, and } from "drizzle-orm"; 
 import { challengeProgress, userProgress, challengeOptions, challenges } from "@/db/schema";
 import { revalidatePath } from "next/cache";
+import { POINTS_TO_REFILL } from "@/constants";
 
 export async function POST(req: Request) {
   const user = await auth();
@@ -11,15 +12,16 @@ export async function POST(req: Request) {
   if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
   const body = await req.json();
-
   const { type, payload } = body;
 
   try {
     if (type === "challengeProgress") {
       const { challengeId } = payload;
-      // idempotent insert: if it exists mark completed, else insert
       const exists = await db.query.challengeProgress.findFirst({
-        where: eq(challengeProgress.challengeId, challengeId) && eq(challengeProgress.userId, userId)
+        where: and( 
+          eq(challengeProgress.challengeId, challengeId), 
+          eq(challengeProgress.userId, userId)
+        )
       });
 
       if (exists) {
@@ -28,9 +30,8 @@ export async function POST(req: Request) {
         await db.insert(challengeProgress).values({ challengeId, userId, completed: true });
       }
 
-      // add points (same logic as your action) - do not double credit if you already did: keep idempotent
       await db.update(userProgress).set({
-        points: sql`${userProgress.points} + 10` // drizzle raw increment shorthand may vary — replace with safe read/update if needed
+        points: sql`${userProgress.points} + 10`
       }).where(eq(userProgress.userId, userId));
 
       revalidatePath("/learn");
@@ -38,9 +39,7 @@ export async function POST(req: Request) {
       revalidatePath("/quests");
       revalidatePath("/leaderboard");
     } else if (type === "challengeScramble") {
-      // payload: { challengeId, userOrder }
       const { challengeId, userOrder } = payload;
-      // verify correct order using DB to avoid cheating
       const options = await db.query.challengeOptions.findMany({
         where: eq(challengeOptions.challengeId, challengeId),
         orderBy: (o, { asc }) => [asc(o.order)],
@@ -63,6 +62,22 @@ export async function POST(req: Request) {
       const newHearts = Math.max(cur.hearts - 1, 0);
       await db.update(userProgress).set({ hearts: newHearts }).where(eq(userProgress.userId, userId));
       revalidatePath("/learn");
+    } else if (type === "refillHearts") {
+      // --- NEW LOGIC ---
+      const cur = await db.query.userProgress.findFirst({ where: eq(userProgress.userId, userId) });
+      if (!cur) return NextResponse.json({ error: "no-progress" }, { status: 400 });
+      if (cur.hearts >= 5) return NextResponse.json({ error: "full" }, { status: 400 });
+      if (cur.points < POINTS_TO_REFILL) return NextResponse.json({ error: "points" }, { status: 400 });
+
+      await db.update(userProgress).set({
+        hearts: 5,
+        points: cur.points - POINTS_TO_REFILL,
+      }).where(eq(userProgress.userId, userId));
+      
+      revalidatePath("/shop");
+      revalidatePath("/learn");
+      revalidatePath("/quests");
+      revalidatePath("/leaderboard");
     } else {
       return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }

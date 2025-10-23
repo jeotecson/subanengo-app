@@ -96,7 +96,7 @@ export const upsertChallengeProgress = async (challengeId: number) => {
     const correctOrder = correctOptions.map(o => o.order);
     const isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
     if (!isCorrect) return { error: "wrong" };
-    // on correct, mark progress and add points
+    
     await db.insert(challengeProgress).values({ challengeId, userId, completed: true });
     await db.update(userProgress).set({ points: currentUserProgress.points + 10 })
         .where(eq(userProgress.userId, userId));

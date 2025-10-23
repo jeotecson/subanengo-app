@@ -2,30 +2,48 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useTransition } from "react";
-//import { refillHearts } from "@/actions/user-progress"
 import { toast } from "sonner";
 import { POINTS_TO_REFILL } from "@/constants";
-
+import { refillHearts } from "@/actions/user-progress"; 
+import { enqueueAction } from "@/components/OfflineSyncClient"; 
 
 type Props = {
     hearts: number;
     points: number;
 };
 
-export const Items = ({
-    hearts, 
-    points, 
-}: Props) => {
+export const Items = ({ hearts, points }: Props) => {
     const [pending, startTransition] = useTransition();
 
     const onRefillHearts = () => {
         if (pending || hearts === 5 || points < POINTS_TO_REFILL) {
             return;
-    }
+        }
 
-    // startTransition(() => {
-    //     refillHearts().catch(() => toast.error("Something went wrong"))
-    // });
+        //This is the offline handling logic
+        if (!navigator.onLine) {
+            enqueueAction({
+                type: "refillHearts",
+                payload: {},
+            });
+            toast("You're offline — purchase saved and will sync later.");
+            return;
+        }
+
+        //This is the online handling logic
+        startTransition(() => {
+            refillHearts()
+                .then((res) => {
+                    if (res?.error === "full") {
+                        toast.error("Hearts are already full");
+                    } else if (res?.error === "points") {
+                        toast.error("Not enough points to refill hearts");
+                    } else {
+                        toast.success("Hearts refilled!");
+                    }
+                })
+                .catch(() => toast.error("Something went wrong"));
+        });
     };
 
     return (
@@ -38,8 +56,9 @@ export const Items = ({
                     </p>
                 </div>
                 <Button 
-                onClick={onRefillHearts}
-                disabled={pending || hearts === 5 || points < POINTS_TO_REFILL}>
+                    onClick={onRefillHearts}
+                    disabled={pending || hearts === 5 || points < POINTS_TO_REFILL}
+                >
                     {hearts === 5 ? "full" : (
                         <div className="flex items-center">
                             <Image 
