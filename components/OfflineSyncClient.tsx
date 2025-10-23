@@ -4,7 +4,6 @@ import { useEffect, useCallback } from "react";
 import { get, set } from "idb-keyval";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Workbox } from "workbox-window";
 
 const QUEUE_KEY = "subanengo-offline-queue";
 
@@ -12,7 +11,7 @@ type OfflineAction =
   | { id?: number; type: "challengeProgress"; payload: { challengeId: number } }
   | { id?: number; type: "challengeScramble"; payload: { challengeId: number; userOrder: number[] } }
   | { id?: number; type: "reduceHearts"; payload: { challengeId: number } }
-  | { id?: number; type: "refillHearts"; payload: {} }; 
+  | { id?: number; type: "refillHearts"; payload: {} };
 
 async function getQueue(): Promise<OfflineAction[]> {
   return (await get(QUEUE_KEY)) || [];
@@ -67,16 +66,14 @@ export default function OfflineSyncClient() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      const wb = new Workbox("/sw.js", { scope: "/" });
-
-      wb.addEventListener("waiting", () => {
-        console.log("New service worker waiting to activate...");
-        wb.messageSkipWaiting();
-      });
-
-      wb.register().then(() => {
-        console.log("Service Worker registered successfully");
-      });
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.log("Service Worker registered with scope:", registration.scope);
+        })
+        .catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
     }
 
     tryFlush();
