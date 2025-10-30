@@ -1,13 +1,17 @@
-// lib/admin.ts
 import { auth } from "@clerk/nextjs/server";
 
+const adminIds = [
+"user_2sc5YzPPZ6uXl42r4rzmvcsIgfG",
+"user_34MxwSnCyiUn8kRbSi9GjJomdB2",
+"user_34MyNNIi75mafzTCTNStg9UfHdm",
+];
+
 export const getIsAdmin = async () => {
-  const { sessionClaims } = await auth();
+const { userId } = await auth();
 
-  //If there's no session, the user is not logged in, so they can't be an admin.
-  if (!sessionClaims) {
-    return false;
-  }
+if (!userId) {
+return false;
+}
 
-  return sessionClaims?.publicMetadata?.isAdmin === true;
+return adminIds.indexOf(userId) !== -1;
 };
