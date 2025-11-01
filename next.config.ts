@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/(.*)",
+        source: "/api/(.*)", 
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
