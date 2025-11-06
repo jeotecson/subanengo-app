@@ -1,5 +1,3 @@
-// public/sw.js
-
 const CACHE_NAME = "subanengo-cache-v1";
 const urlsToCache = [
   "/",
@@ -19,6 +17,7 @@ self.addEventListener("install", (event) => {
     })
   );
 });
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || !event.request.url.startsWith("http")) {
     return;
@@ -31,12 +30,7 @@ self.addEventListener("fetch", (event) => {
         return response;
       }
 
-      return fetch(event.request).catch(() => {
-        if (event.request.destination === "document") {
-          console.log("Service Worker: Offline, serving fallback page");
-          return caches.match("/~offline");
-        }
-      });
+      return fetch(event.request);
     })
   );
 });
