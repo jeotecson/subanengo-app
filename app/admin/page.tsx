@@ -6,7 +6,7 @@ const AdminPage = async () => {
   const isAdmin = await getIsAdmin();
 
   if (!isAdmin) {
-    redirect("/");
+    redirect("/learn?reason=not_admin");
   }
 
   return <AdminAppWrapper />;
