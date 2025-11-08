@@ -28,10 +28,16 @@ const LeaderboardPage = async () => {
 
   try {
     const freshData = await getTopTenUsers();
-    leaderboard = freshData;
-    await setCachedData("leaderboard", freshData);
+
+    const uniqueLeaderboard = Array.from(
+      new Map(freshData.map((item) => [item.userId, item])).values()
+    );
+
+    leaderboard = uniqueLeaderboard;
+
+    await setCachedData("leaderboard", uniqueLeaderboard);
   } catch (error) {
-    console.log("Failed to fetch leaderboard, falling back to cache.");
+    console.log("⚠️ Failed to fetch leaderboard, falling back to cache.");
     const cachedData = await getCachedData("leaderboard");
     leaderboard = cachedData as LeaderboardEntry[] | null;
   }
@@ -67,6 +73,7 @@ const LeaderboardPage = async () => {
           />
           <Quests points={userProgress.points} hearts={userProgress.hearts} />
         </StickyWrapper>
+
         <FeedWrapper>
           <div className="w-full flex flex-col items-center">
             <Image
@@ -79,8 +86,8 @@ const LeaderboardPage = async () => {
               Leaderboard
             </h1>
             <p className="text-muted-foreground text-center text-lg mb-6">
-              Leaderboard is unavailable offline. Please connect to the
-              internet to see the latest rankings.
+              Leaderboard is unavailable offline. Please connect to the internet
+              to see the latest rankings.
             </p>
           </div>
         </FeedWrapper>
@@ -117,7 +124,7 @@ const LeaderboardPage = async () => {
           {leaderboard.map((entry, index) => (
             <div
               key={entry.userId}
-              className="flex items-center w-full p-2 px-4 rounded-xl hover:bg-gray-200/50"
+              className="flex items-center w-full p-2 px-4 rounded-xl hover:bg-gray-200/50 transition"
             >
               <p className="font-bold text-yellow-700 mr-4">{index + 1}</p>
               <Avatar className="border bg-yellow-500 h-12 w-12 ml-3 mr-6">
