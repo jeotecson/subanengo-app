@@ -4,9 +4,6 @@ import { auth } from "@clerk/nextjs/server";
 import { eq, desc } from "drizzle-orm";
 import { userProgress, courses, units, challengeProgress, lessons } from "@/db/schema";
 
-/**
- * Fetches user progress for the currently authenticated user
- */
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
 
@@ -24,9 +21,6 @@ export const getUserProgress = cache(async () => {
   return data;
 });
 
-/**
- * Fetches all units for the active course of the current user
- */
 export const getUnits = cache(async () => {
   const { userId } = await auth();
   const userProg = await getUserProgress();
@@ -216,10 +210,6 @@ export const getLessonPercentage = cache(async () => {
   return percentage;
 });
 
-/**
- * ✅ Improved getTopTenUsers
- * Returns top 10 users by XP (points)
- */
 export const getTopTenUsers = cache(async () => {
   const leaderboard = await db
     .select({
