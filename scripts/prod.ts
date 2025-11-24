@@ -14,6 +14,7 @@ const main = async () => {
 
     // Delete all existing data
     await Promise.all([
+      db.delete(schema.userProgress),
       db.delete(schema.challengeProgress),
       db.delete(schema.challengeOptions),
       db.delete(schema.challenges),

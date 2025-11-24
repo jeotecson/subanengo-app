@@ -10,13 +10,11 @@ const QUEUE_KEY = "subanengo-offline-queue";
 type OfflineAction =
   | { id?: number; type: "challengeProgress"; payload: { challengeId: number } }
   | { id?: number; type: "challengeScramble"; payload: { challengeId: number; userOrder: number[] } }
-  | { id?: number; type: "reduceHearts"; payload: { challengeId: number } }
-  | { id?: number; type: "refillHearts"; payload: {} };
+  | { id?: number; type: "reduceHearts"; payload: { challengeId: number } };
 
 async function getQueue(): Promise<OfflineAction[]> {
   return (await get(QUEUE_KEY)) || [];
 }
-
 async function setQueue(q: OfflineAction[]) {
   await set(QUEUE_KEY, q);
 }
@@ -42,10 +40,11 @@ async function flushQueueOnce() {
       });
 
       if (!res.ok) throw new Error("sync failed");
-
+      // remove item from queue
       const newQ = (await getQueue()).filter((x) => x.id !== item.id);
       await setQueue(newQ);
     } catch (err) {
+      // stop on first failure, we'll retry later
       console.error("Offline sync failed for item", item, err);
       return { ok: false, flushed: 0 };
     }
@@ -60,36 +59,17 @@ export default function OfflineSyncClient() {
     const res = await flushQueueOnce();
     if (res.ok && res.flushed > 0) {
       toast.success(`Synced ${res.flushed} offline action(s)`);
-      router.refresh();
+      router.refresh(); // refresh server data (RSC)
     }
   }, [router]);
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registered with scope:", registration.scope);
-        })
-        .catch((error) => {
-          console.error("Service Worker registration failed:", error);
-        });
-    }
-
+    // try at mount
     tryFlush();
 
-    window.addEventListener("online", () => {
-      console.log("Back online — syncing queued actions...");
-      tryFlush();
-    });
-
-    window.addEventListener("offline", () => {
-      console.log("Offline mode enabled");
-    });
-
-    return () => {
-      window.removeEventListener("online", tryFlush);
-    };
+    // try on reconnection
+    window.addEventListener("online", tryFlush);
+    return () => window.removeEventListener("online", tryFlush);
   }, [tryFlush]);
 
   return null;

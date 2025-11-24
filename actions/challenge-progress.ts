@@ -8,115 +8,101 @@ import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
 import { challengeOptions, challengeProgress, challenges, userProgress } from "@/db/schema";
 
+
 export const upsertChallengeProgress = async (challengeId: number) => {
-  const { userId } = await auth();
+    const { userId } = await auth();
 
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
 
-  const currentUserProgress = await getUserProgress();
+    const currentUserProgress = await getUserProgress();
 
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
+    if (!currentUserProgress) {
+        throw new Error("User progress not found");
+    }
 
-  const challenge = await db.query.challenges.findFirst({
-    where: eq(challenges.id, challengeId)
-  });
+    const challenge = await db.query.challenges.findFirst({
+        where: eq(challenges.id, challengeId)
+    });
 
-  if (!challenge) {
-    throw new Error("Challenge not found");
-  }
+    if (!challenge) {
+        throw new Error("Challenge not found");
+    }
 
-  const lessonId = challenge.lessonId;
+    const lessonId = challenge.lessonId;
 
-  const existingChallengeProgress = await db.query.challengeProgress.findFirst({
-    where: and(
-      eq(challengeProgress.userId, userId),
-      eq(challengeProgress.challengeId, challengeId)
-    ),
-  });
+    const existingChallengeProgress = await db.query.challengeProgress.findFirst({
+        where: and(
+            eq(challengeProgress.userId, userId),
+            eq(challengeProgress.challengeId, challengeId)
+        ),
+    });
 
-  const isPractice = !!existingChallengeProgress;
+    const isPractice = !!existingChallengeProgress;
 
-  if (isPractice) {
-    await db.update(challengeProgress).set({
-      completed: true,
-    })
-      .where(
-        eq(challengeProgress.id, existingChallengeProgress.id)
-      );
+    if (isPractice) {
+        await db.update(challengeProgress).set({
+            completed: true,
+        })
+        .where(
+            eq(challengeProgress.id, existingChallengeProgress.id)
+        );
+
+        await db.update(userProgress).set({
+            hearts: Math.min(currentUserProgress.hearts + 1, 5),
+            points: currentUserProgress.points + 10,
+        }).where(eq(userProgress.userId, userId));
+
+        revalidatePath("/learn");
+        revalidatePath("/lesson");
+        revalidatePath("/quests");
+        revalidatePath("/leaderboard");
+        revalidatePath(`/lesson/${lessonId}`);
+        return;
+    }
+
+    await db.insert(challengeProgress).values({
+        challengeId,
+        userId,
+        completed: true,
+    });
 
     await db.update(userProgress).set({
-      hearts: Math.min(currentUserProgress.hearts + 1, 5),
-      points: currentUserProgress.points + 10,
+        points: currentUserProgress.points + 10,
     }).where(eq(userProgress.userId, userId));
 
+        revalidatePath("/learn");
+        revalidatePath("/lesson");
+        revalidatePath("/quests");
+        revalidatePath("/leaderboard");
+        revalidatePath(`/lesson/${lessonId}`);
+};
+
+    export const upsertChallengeScramble = async (
+    challengeId: number,
+    userOrder: number[]
+    ) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+    const currentUserProgress = await getUserProgress();
+    if (!currentUserProgress) throw new Error("User progress not found");
+    const challenge = await db.query.challenges.findFirst({ where: eq(challenges.id, challengeId) });
+    if (!challenge) throw new Error("Challenge not found");
+    const correctOptions = await db.query.challengeOptions.findMany({
+        where: eq(challengeOptions.challengeId, challengeId),
+        orderBy: (opt, { asc }) => [asc(opt.order)],
+    });
+    const correctOrder = correctOptions.map(o => o.order);
+    const isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+    if (!isCorrect) return { error: "wrong" };
+    // on correct, mark progress and add points
+    await db.insert(challengeProgress).values({ challengeId, userId, completed: true });
+    await db.update(userProgress).set({ points: currentUserProgress.points + 10 })
+        .where(eq(userProgress.userId, userId));
     revalidatePath("/learn");
-    revalidatePath("/lesson");
+    revalidatePath(`/lesson/${challenge.lessonId}`);
     revalidatePath("/quests");
     revalidatePath("/leaderboard");
-    revalidatePath(`/lesson/${lessonId}`);
-    return;
-  }
-
-  await db.insert(challengeProgress).values({
-    challengeId,
-    userId,
-    completed: true,
-  });
-
-  await db.update(userProgress).set({
-    points: currentUserProgress.points + 10,
-  }).where(eq(userProgress.userId, userId));
-
-  revalidatePath("/learn");
-  revalidatePath("/lesson");
-  revalidatePath("/quests");
-  revalidatePath("/leaderboard");
-  revalidatePath(`/lesson/${lessonId}`);
-};
-
-export const upsertChallengeScramble = async (
-  challengeId: number,
-  userOrder: number[]
-) => {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-  
-  const currentUserProgress = await getUserProgress();
-  if (!currentUserProgress) throw new Error("User progress not found");
-  
-  const challenge = await db.query.challenges.findFirst({ 
-    where: eq(challenges.id, challengeId) 
-  });
-  if (!challenge) throw new Error("Challenge not found");
-  
-  const correctOptions = await db.query.challengeOptions.findMany({
-    where: eq(challengeOptions.challengeId, challengeId),
-    orderBy: (opt, { asc }) => [asc(opt.order)],
-  });
-  
-  const correctOrder = correctOptions.map(o => o.order);
-  const isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
-  
-  if (!isCorrect) return { error: "wrong" };
-
-  await db.insert(challengeProgress).values({ 
-    challengeId, 
-    userId, 
-    completed: true 
-  });
-  
-  await db.update(userProgress).set({ 
-    points: currentUserProgress.points + 10 
-  }).where(eq(userProgress.userId, userId));
-  
-  revalidatePath("/learn");
-  revalidatePath(`/lesson/${challenge.lessonId}`);
-  revalidatePath("/quests");
-  revalidatePath("/leaderboard");
-  
-  return { success: true };
-};
+    return { success: true };
+    };
