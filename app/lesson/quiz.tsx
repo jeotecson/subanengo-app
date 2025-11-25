@@ -11,7 +11,10 @@ import { reduceHearts } from "@/actions/user-progress";
 import { useHeartsModal } from "@/store/use-hearts-modal";
 import { challengeOptions, challenges } from "@/db/schema";
 import { usePracticeModal } from "@/store/use-practice-modal";
-import { upsertChallengeProgress, upsertChallengeScramble } from "@/actions/challenge-progress";
+import {
+  upsertChallengeProgress,
+  upsertChallengeScramble,
+} from "@/actions/challenge-progress";
 
 import OfflineSyncClient, { enqueueAction } from "@/components/OfflineSyncClient";
 
@@ -42,17 +45,15 @@ export const Quiz = ({
   const { open: openPracticeModal } = usePracticeModal();
 
   useMount(() => {
-    if (initialPercentage === 100) {
-      openPracticeModal();
-    }
+    if (initialPercentage === 100) openPracticeModal();
   });
 
   const { width, height } = useWindowSize();
   const router = useRouter();
 
   const [finishAudio] = useAudio({ src: "/finish.mp3", autoPlay: true });
-  const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
-  const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
+  const [correctAudio, , correctControls] = useAudio({ src: "/correct.wav" });
+  const [incorrectAudio, , incorrectControls] = useAudio({ src: "/incorrect.wav" });
 
   const [pending, startTransition] = useTransition();
 
@@ -63,7 +64,7 @@ export const Quiz = ({
   );
   const [challenges] = useState(initialLessonChallenges);
   const [activeIndex, setActiveIndex] = useState(() => {
-    const uncompletedIndex = challenges.findIndex((challenge) => !challenge.completed);
+    const uncompletedIndex = challenges.findIndex((c) => !c.completed);
     return uncompletedIndex === -1 ? 0 : uncompletedIndex;
   });
 
@@ -75,6 +76,8 @@ export const Quiz = ({
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
+    setStatus("none");
+    setSelectedOption(undefined);
   };
 
   const onSelect = (id: number) => {
@@ -93,18 +96,14 @@ export const Quiz = ({
 
     if (status === "correct") {
       onNext();
-      setStatus("none");
-      setSelectedOption(undefined);
       return;
     }
 
-    const correctOption = options.find((option) => option.correct);
+    const correctOption = options.find((opt) => opt.correct);
     if (!correctOption) return;
 
-    // ✅ Correct answer handling (with offline support)
     if (correctOption.id === selectedOption) {
       if (!navigator.onLine) {
-        // Offline mode — queue the progress
         enqueueAction({
           type: "challengeProgress",
           payload: { challengeId: challenge.id },
@@ -114,27 +113,23 @@ export const Quiz = ({
         correctControls.play();
         setStatus("correct");
         setPercentage((p) => p + 100 / challenges.length);
-        setTimeout(onNext, 1000);
-        return;
+        return; 
       }
 
-      // Online mode — normal flow
       startTransition(() => {
         upsertChallengeProgress(challenge.id)
           .then(() => {
             correctControls.play();
             setStatus("correct");
             setPercentage((p) => p + 100 / challenges.length);
-            setTimeout(onNext, 1000);
           })
           .catch(() => toast.error("Something went wrong. Please try again."));
       });
     } else {
-      // ❌ Wrong answer handling
       startTransition(() => {
         reduceHearts(challenge.id)
-          .then((response) => {
-            if (response?.error === "hearts") {
+          .then((res) => {
+            if (res?.error === "hearts") {
               openHeartsModal();
               return;
             }
@@ -142,7 +137,7 @@ export const Quiz = ({
             incorrectControls.play();
             setStatus("wrong");
 
-            if (!response?.error) {
+            if (!res?.error) {
               setHearts((prev) => Math.max(prev - 1, 0));
             }
           })
@@ -227,11 +222,10 @@ export const Quiz = ({
                       });
 
                       toast("You're offline — scramble saved and will sync later.");
-                      setStatus("correct");
                       correctControls.play();
+                      setStatus("correct");
                       setPercentage((p) => p + 100 / challenges.length);
-                      setTimeout(onNext, 1000);
-                      return;
+                      return; 
                     }
 
                     startTransition(() => {
@@ -243,7 +237,6 @@ export const Quiz = ({
                           setStatus("correct");
                           correctControls.play();
                           setPercentage((p) => p + 100 / challenges.length);
-                          setTimeout(onNext, 1000);
                         }
                       });
                     });
